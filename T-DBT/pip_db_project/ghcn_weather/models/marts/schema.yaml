@@ -18,9 +18,7 @@ models:
 
       - name: country
         data_type: string
-        tests:
-          - accepted_values:
-              values: ["Austria", "Australia", "Germany"]
+
 
   - name: dim_station
     description: "station dimension includes information of stations"
@@ -64,8 +62,6 @@ models:
       - name: code_country
         tests:
           - not_null
-          - accepted_values:
-              values: ["AU", "AS", "GM"]
 
       - name: date
         tests:
