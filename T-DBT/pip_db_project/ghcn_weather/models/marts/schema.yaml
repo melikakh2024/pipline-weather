@@ -1,21 +1,27 @@
+version: 2
+
 models:
   - name: dim_country
     description: "country dimension involves name of countries"
     columns:
       - name: sk_c
+        data_type: string
         tests:
           - not_null
           - unique
 
       - name: id
+        data_type: string
         tests:
           - not_null
           - unique
 
       - name: country
+        data_type: string
         tests:
           - accepted_values:
-              values: ["Austria", "Australia", "Germany"]
+              arguments:
+                values: ["Austria", "Australia", "Germany"]
 
   - name: dim_station
     description: "station dimension includes information of stations"
@@ -36,7 +42,7 @@ models:
 
       - name: latitude
         data_type: float64
-      - name : longitude
+      - name: longitude
         data_type: float64
       - name: elevation
         data_type: float64
@@ -57,7 +63,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-                values: ["AU", "AS","GM"]
+              arguments:
+                values: ["AU", "AS", "GM"]
 
       - name: date
         tests:
@@ -89,4 +96,3 @@ models:
               arguments:
                 to: ref('dim_station')
                 field: sk_s
-
