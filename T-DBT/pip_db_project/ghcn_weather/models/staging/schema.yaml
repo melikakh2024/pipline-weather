@@ -25,7 +25,7 @@ models:
   - name: country
     description: "information serves as a definition of each country "
     columns:
-      - name: code
+      - name: id
         tests:
           - unique
           - not_null
@@ -43,7 +43,7 @@ models:
       - name: latitude
         tests:
           - not_null
-      - name: longtitude
+      - name: longitude
         tests:
           - not_null
       - name: elevation
