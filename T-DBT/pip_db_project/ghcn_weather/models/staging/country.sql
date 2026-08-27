@@ -5,7 +5,7 @@ with source as (
 renamed as (
     select
         cast(id as string) as id,
-        cast(country.country as string) as country
+        cast(country as string) as country
     from source
 )
 
