@@ -1,3 +1,4 @@
+-- depends_on: {{ ref('weather') }}
 {{config(
           materialized="incremental",
           incremental_strategy="merge",
