@@ -1,0 +1,51 @@
+models:
+  - name: weather
+    description: "information serves as a definition of each field of data covering one station-day"
+    columns:
+      - name: primarykey
+        tests:
+          - unique
+          - not_null
+      - name: id
+        tests:
+          - not_null
+      - name: code_country
+        tests:
+          - not_null
+      - name: date
+        tests:
+            - not_null
+      - name: element
+        tests:
+              - not_null
+      - name: value
+        tests:
+              - not_null
+
+  - name: country
+    description: "information serves as a definition of each country "
+    columns:
+      - name: code
+        tests:
+          - unique
+          - not_null
+      - name: country
+        tests:
+          - not_null
+
+  - name: stations
+    description: "information serves as a definition of stations"
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: latitude
+        tests:
+          - not_null
+      - name: longtitude
+        tests:
+          - not_null
+      - name: elevation
+        tests:
+          - not_null

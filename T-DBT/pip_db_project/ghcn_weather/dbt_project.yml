@@ -1,0 +1,31 @@
+name: ghcn_weather
+
+profile: ghcn_weather
+
+seed-paths: ["seeds"]
+model-paths: ["models"]
+macro-paths: ["macros"]
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  # Builds seeds into '<your_schema_name>_raw'
+  ghcn_weather:
+    +schema: raw
+
+models:
+  ghcn_weather:
+
+    staging:
+      +materialized: view
+      +schema: staging
+
+    marts:
+      +materialized: table
+      +schema: marts
+
+snapshots:
+  ghcn_weather:
+    +materialized: table
+    +schema: snapshots

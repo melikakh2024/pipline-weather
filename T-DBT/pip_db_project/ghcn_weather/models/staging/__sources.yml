@@ -1,0 +1,14 @@
+version: 2
+
+# Try using these source definitions instead!
+sources:
+  - name: gchn_source
+    database: finalbatchproject
+    schema: gchn_weather_dw
+    tables:
+      - name: weather
+        description: Each row shows  information of weather changes in each station
+      - name: station
+        description: it includes information of stations
+      - name: country
+        description: it involves name of  countries

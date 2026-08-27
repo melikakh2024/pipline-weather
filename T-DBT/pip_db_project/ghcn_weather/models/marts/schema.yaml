@@ -1,0 +1,94 @@
+models:
+  - name: dim_country
+    description: "country dimension involves name of countries"
+    columns:
+      - name: sk_c
+        tests:
+          - not_null
+          - unique
+
+      - name: id
+        tests:
+          - not_null
+          - unique
+
+      - name: country
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["Austria", "Australia", "GERmany"]
+
+  - name: dim_station
+    description: "station dimension includes information of stations"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_s
+        data_type: string
+        tests:
+          - not_null
+          - unique
+      - name: id
+        data_type: string
+        tests:
+          - not_null
+          - unique
+
+      - name: latitude
+        data_type: float64
+      - name : longitude
+        data_type: float64
+      - name: elevation
+        data_type: float64
+
+  - name: fct_weather
+    description: "contains changes weather across 2024 and 2025 years"
+    columns:
+      - name: primarykey
+        tests:
+          - not_null
+          - unique
+
+      - name: id
+        tests:
+          - not_null
+
+      - name: code_country
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["AU", "AS","GM"]
+
+      - name: date
+        tests:
+          - not_null
+
+      - name: Element
+        tests:
+          - not_null
+
+      - name: value
+        tests:
+          - not_null
+          - positive_value
+
+      - name: sk_c
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_country')
+                field: sk_c
+
+      - name: sk_s
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_station')
+                field: sk_s
+
