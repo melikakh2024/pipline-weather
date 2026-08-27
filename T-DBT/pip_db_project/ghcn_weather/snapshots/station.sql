@@ -3,7 +3,8 @@
 {{ config(
     unique_key='id',
     strategy='check',
-    check_cols=['latitude', 'longitude','elevation']
+    check_cols=['latitude', 'longitude','elevation'],
+    materialized='snapshot'
 ) }}
 
 select id, latitude, longitude, elevation
