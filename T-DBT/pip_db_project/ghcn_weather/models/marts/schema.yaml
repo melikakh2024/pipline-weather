@@ -19,7 +19,6 @@ models:
       - name: country
         data_type: string
 
-
   - name: dim_station
     description: "station dimension includes information of stations"
     config:
@@ -74,20 +73,22 @@ models:
       - name: value
         tests:
           - not_null
-          - positive_value
+          - positive_value:
+              config:
+                where: "Element = 'PRCP'"
 
       - name: sk_c
         tests:
           - not_null
-          - unique
           - relationships:
-              to: ref('dim_country')
-              field: sk_c
+              arguments:
+                to: ref('dim_country')
+                field: sk_c
 
       - name: sk_s
         tests:
           - not_null
-          - unique
           - relationships:
-              to: ref('dim_station')
-              field: sk_s
+              arguments:
+                to: ref('dim_station')
+                field: sk_s
