@@ -1,0 +1,72 @@
+version: "3.8"
+
+services:
+  spark-master:
+    image: treeverse/bitnami-spark:3.5
+    container_name: spark-m
+    user: root
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+      - "4040:4040"
+    volumes:
+      - .:/opt/bitnami/spark/app
+    environment:
+      SPARK_MODE: master
+
+  spark-worker:
+    image: treeverse/bitnami-spark:3.5
+    container_name: spark-w
+    volumes:
+      - .:/opt/bitnami/spark/app
+    environment:
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_MODE: worker
+    depends_on:
+      - spark-master
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: k3str4
+
+  kestra:
+    image: kestra/kestra:latest
+    container_name: kestra
+    command: server standalone
+    user: root
+    ports:
+      - "8081:8080"
+    env_file:
+      - ./secrets/.env-base64
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./kestra_storage:/app/storage
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: k3str4
+        kestra:
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              basePath: "/app/storage"
+          queue:
+            type: postgres
+    depends_on:
+      - postgres
+
+volumes:
+      postgres-data:
+        driver: local
