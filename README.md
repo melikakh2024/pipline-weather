@@ -1,4 +1,4 @@
-!(Image/pipline.jpg)
+![Pipeline Architecture](Image/pipline.jpg)
 
 # GHCN Weather Data Architecture (Batch Pipeline)
 
