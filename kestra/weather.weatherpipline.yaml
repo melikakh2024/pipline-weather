@@ -1,0 +1,96 @@
+id: weatherpipline
+namespace: weather
+
+tasks:
+  - id: wdir
+    type: io.kestra.plugin.core.flow.WorkingDirectory
+    tasks:
+      - id: clone
+        type: io.kestra.plugin.git.Clone
+        url: https://github.com/melikakh2024/pipline-weather
+        branch: main
+
+      - id: python
+        type: io.kestra.plugin.scripts.python.Commands
+        
+        retry:
+          type: constant
+          interval: PT30S
+          maxAttempt: 3
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+        containerImage: ghcr.io/kestra-io/pydata:latest
+        inputFiles:
+          gcp-key.json: "{{secret('key_GCP')}}"
+        env:
+          GCP_PROJECT_ID: "{{kv('GCP_PROJECT_ID')}}"
+          GCS_BUCKET_NAME: "{{kv('GCS_BUCKET_NAME')}}"
+        beforeCommands:
+          - pip install -r requirements.txt
+          - pip install python-dotenv
+        commands:
+          - export GOOGLE_APPLICATION_CREDENTIALS="$WORKING_DIR/gcp-key.json"
+          - cd E-ingest && python in_gcs.py && python ingest2.py
+
+      - id: spark
+        type: io.kestra.plugin.scripts.shell.Commands
+        
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          networkMode: finalproject_default
+          user: "0:0"
+        containerImage: treeverse/bitnami-spark:3.5
+        inputFiles:
+          gcp-key.json: "{{secret('key_GCP')}}"
+        env:
+          HOME: "/tmp"
+          HADOOP_USER_NAME: "spark"
+          PYSPARK_SUBMIT_ARGS: "--conf spark.jars.ivy=/tmp/.ivy2 pyspark-shell"
+          GOOGLE_APPLICATION_CREDENTIALS: "$WORKING_DIR/gcp-key.json"
+          GCS_RAW_BUCKET: "{{kv('GCS_RAW_BUCKET')}}"
+          GCS_PROCESSED_BUCKET: "{{kv('GCS_PROCESSED_BUCKET')}}"
+          SPARK_MASTER_URL: "spark://spark-master:7077"
+        beforeCommands:
+          - pip install -r requirements.txt
+          - pip install python-dotenv
+          - curl -sSL -o /opt/bitnami/spark/gcs-connector.jar https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop3-2.2.8.jar
+        commands:
+          - export GOOGLE_APPLICATION_CREDENTIALS="$WORKING_DIR/gcp-key.json"
+          - cd L-Pyspark && python etl.py --year 2024
+          - cd L-Pyspark && python etl.py --year 2025
+
+      -   id: dbt-build
+          type: io.kestra.plugin.dbt.cli.DbtCLI
+          env:
+            DBT_DATABASE: "{{kv('GCP_PROJECT_ID')}}"
+            DBT_SCHEMA: "{{kv('GCP_SCHEMA')}}"
+           
+
+          containerImage: ghcr.io/kestra-io/dbt-bigquery:latest
+          taskRunner:
+            type: io.kestra.plugin.scripts.runner.docker.Docker
+          inputFiles:
+            gcp-key.json: "{{secret('key_GCP')}}"
+          projectDir: T-DBT/pip_db_project/ghcn_weather
+          commands:
+            -  dbt deps
+            -  dbt build
+          
+          storeManifest:
+            key: manifest.json
+            namespace: "{{ flow.namespace }}"
+          profiles: |
+            ghcn_weather:
+              outputs:
+                dev:
+                  type: bigquery
+                  dataset: "{{kv('GCP_SCHEMA')}}"
+                  project: "{{kv('GCP_PROJECT_ID')}}"
+                  location: "{{kv('GCP_LOCATION')}}"
+                  keyfile: gcp-key.json
+                  method: service-account
+                  priority: interactive
+                  threads: 16
+                  timeout_seconds: 300
+                  fixed_retries: 1
+              target: dev
